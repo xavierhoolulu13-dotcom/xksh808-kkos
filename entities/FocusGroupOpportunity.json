@@ -1,0 +1,44 @@
+{
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "platform": {
+      "type": "string"
+    },
+    "url": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string"
+    },
+    "pay": {
+      "type": "string"
+    },
+    "duration": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "denied",
+        "applied",
+        "completed"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    },
+    "applied_at": {
+      "type": "string"
+    }
+  },
+  "required": [],
+  "name": "FocusGroupOpportunity"
+}
