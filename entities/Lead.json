@@ -1,0 +1,47 @@
+{
+  "type": "object",
+  "properties": {
+    "business_name": {
+      "type": "string"
+    },
+    "contact_name": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string"
+    },
+    "industry": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "New",
+        "Contacted",
+        "Following Up",
+        "Closed",
+        "Dead"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    },
+    "outreach_sent_at": {
+      "type": "string"
+    },
+    "follow_up_at": {
+      "type": "string"
+    }
+  },
+  "required": [],
+  "name": "Lead"
+}
