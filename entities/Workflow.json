@@ -1,0 +1,44 @@
+{
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "department": {
+      "type": "string",
+      "enum": [
+        "Lead Engine",
+        "Sales Desk",
+        "Delivery",
+        "Wealth Engine"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Idle",
+        "Running",
+        "Error"
+      ]
+    },
+    "trigger_type": {
+      "type": "string",
+      "enum": [
+        "New Lead",
+        "Payment Complete",
+        "Manual"
+      ]
+    },
+    "last_run": {
+      "type": "string"
+    },
+    "success_rate": {
+      "type": "number"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [],
+  "name": "Workflow"
+}

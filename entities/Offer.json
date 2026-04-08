@@ -1,0 +1,56 @@
+{
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "Free Website",
+        "Upgrade Pack",
+        "Branding",
+        "OS Setup",
+        "AOB",
+        "Souper Agent",
+        "Other"
+      ]
+    },
+    "tier": {
+      "type": "string",
+      "enum": [
+        "Entry",
+        "Core",
+        "Premium"
+      ]
+    },
+    "price": {
+      "type": "number"
+    },
+    "activation_key": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "Paused",
+        "Archived"
+      ]
+    },
+    "delivery_mode": {
+      "type": "string",
+      "enum": [
+        "Service",
+        "Download",
+        "Access",
+        "License"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [],
+  "name": "Offer"
+}

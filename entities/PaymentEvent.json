@@ -1,0 +1,39 @@
+{
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string"
+    },
+    "amount": {
+      "type": "number"
+    },
+    "method": {
+      "type": "string",
+      "enum": [
+        "Cash App",
+        "Stripe",
+        "PayPal",
+        "Other"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Pending",
+        "Complete",
+        "Refunded"
+      ]
+    },
+    "reference_id": {
+      "type": "string"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [],
+  "name": "PaymentEvent"
+}

@@ -1,0 +1,39 @@
+{
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "platform": {
+      "type": "string"
+    },
+    "handle_url": {
+      "type": "string"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "Direct Chat",
+        "Social",
+        "Local",
+        "Marketplace"
+      ]
+    },
+    "lead_volume_30d": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "Paused",
+        "Experimental"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [],
+  "name": "Channel"
+}

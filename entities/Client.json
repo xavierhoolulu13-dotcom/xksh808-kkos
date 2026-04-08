@@ -1,0 +1,49 @@
+{
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "business_name": {
+      "type": "string"
+    },
+    "service_type": {
+      "type": "string",
+      "enum": [
+        "Free Site",
+        "Starter",
+        "Pro",
+        "Custom"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Trial",
+        "Active",
+        "Paused",
+        "Closed"
+      ]
+    },
+    "trial_start": {
+      "type": "string"
+    },
+    "trial_end": {
+      "type": "string"
+    },
+    "payment_received": {
+      "type": "boolean"
+    },
+    "primary_channel": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [],
+  "name": "Client"
+}
