@@ -1,0 +1,12 @@
+[build]
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+
+# Daily retention scan — 8am HST = 18:00 UTC
+[[plugins]]
+  package = "@netlify/plugin-functions-install-core"
+
+[context.production.environment]
+  NODE_VERSION = "18"
