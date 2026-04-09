@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>XKSH808 — Reliable Visibility. Compliments of Mission Control.</title>
+  <meta name="description" content="Hawaii web design, SEO, and AI tools that put local businesses on the map. No calls needed. Pick a package, go live." />
+  <style>
+    :root {
+      --black: #0a0a0a;
+      --dark: #111111;
+      --card: #1a1a1a;
+      --border: #2a2a2a;
+      --teal: #00d4aa;
+      --teal-dim: #00a88a;
+      --white: #f0f0f0;
+      --muted: #888888;
+      --red: #ff4444;
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: var(--font);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 40px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: rgba(10,10,10,0.95);
+      backdrop-filter: blur(10px);
+      z-index: 100;
+    }
+    .logo {
+      font-size: 1.1rem;
+      font-weight: 800;
+      letter-spacing: 2px;
+      color: var(--teal);
+      text-transform: uppercase;
+    }
+    .logo span { color: var(--white); }
+    nav a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    nav a:hover { color: var(--teal); }
+    .nav-cta {
+      background: var(--teal);
+      color: var(--black) !important;
+      padding: 10px 22px;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 0.8rem;
+    }
+    .nav-cta:hover { background: var(--teal-dim) !important; color: var(--black) !important; }
+
+    /* ── HERO ── */
+    .hero {
+      padding: 100px 40px 80px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .hero-tag {
+      display: inline-block;
+      background: rgba(0,212,170,0.1);
+      border: 1px solid rgba(0,212,170,0.3);
+      color: var(--teal);
+      font-size: 0.75rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      border-radius: 2px;
+      margin-bottom: 28px;
+    }
+    .hero h1 {
+      font-size: clamp(2.4rem, 6vw, 4.5rem);
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -1px;
+      margin-bottom: 24px;
+    }
+    .hero h1 em {
+      font-style: normal;
+      color: var(--teal);
+    }
+    .hero p {
+      font-size: 1.15rem;
+      color: var(--muted);
+      max-width: 560px;
+      margin-bottom: 40px;
+      line-height: 1.7;
+    }
+    .hero-btns {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .btn-primary {
+      background: var(--teal);
+      color: var(--black);
+      padding: 16px 32px;
+      border-radius: 4px;
+      font-weight: 800;
+      font-size: 0.95rem;
+      text-decoration: none;
+      letter-spacing: 0.5px;
+      transition: background 0.2s, transform 0.1s;
+      display: inline-block;
+    }
+    .btn-primary:hover { background: var(--teal-dim); transform: translateY(-1px); }
+    .btn-ghost {
+      border: 1px solid var(--border);
+      color: var(--white);
+      padding: 16px 32px;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      text-decoration: none;
+      transition: border-color 0.2s;
+      display: inline-block;
+    }
+    .btn-ghost:hover { border-color: var(--teal); color: var(--teal); }
+
+    /* ── TICKER ── */
+    .ticker {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 0;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    .ticker-inner {
+      display: inline-flex;
+      gap: 60px;
+      animation: ticker 20s linear infinite;
+      font-size: 0.75rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .ticker-inner span { color: var(--teal); }
+    @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+    /* ── SECTION ── */
+    section { padding: 80px 40px; max-width: 1100px; margin: 0 auto; }
+    .section-label {
+      font-size: 0.75rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 16px;
+    }
+    h2 {
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 16px;
+    }
+    .section-sub {
+      color: var(--muted);
+      font-size: 1rem;
+      max-width: 500px;
+      margin-bottom: 48px;
+    }
+
+    /* ── HOW IT WORKS ── */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 24px;
+    }
+    .step {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 32px;
+      position: relative;
+    }
+    .step-num {
+      font-size: 0.7rem;
+      letter-spacing: 2px;
+      color: var(--teal);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .step h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 10px; }
+    .step p { color: var(--muted); font-size: 0.9rem; line-height: 1.6; }
+
+    /* ── PACKAGES ── */
+    .packages {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+    }
+    .package {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 36px 32px;
+      transition: border-color 0.2s;
+    }
+    .package:hover { border-color: var(--teal); }
+    .package.featured {
+      border-color: var(--teal);
+      position: relative;
+    }
+    .featured-tag {
+      position: absolute;
+      top: -12px;
+      left: 32px;
+      background: var(--teal);
+      color: var(--black);
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 2px;
+    }
+    .package-tier {
+      font-size: 0.7rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+    .package h3 { font-size: 1.3rem; font-weight: 800; margin-bottom: 8px; }
+    .package-price {
+      font-size: 2.4rem;
+      font-weight: 900;
+      color: var(--teal);
+      margin-bottom: 4px;
+      line-height: 1;
+    }
+    .package-price span { font-size: 1rem; color: var(--muted); font-weight: 400; }
+    .package-desc {
+      color: var(--muted);
+      font-size: 0.88rem;
+      margin-bottom: 24px;
+      margin-top: 8px;
+      line-height: 1.6;
+    }
+    .package ul {
+      list-style: none;
+      margin-bottom: 32px;
+    }
+    .package ul li {
+      font-size: 0.88rem;
+      color: var(--white);
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .package ul li:last-child { border-bottom: none; }
+    .check { color: var(--teal); font-size: 0.9rem; }
+    .package .btn-primary, .package .btn-ghost {
+      width: 100%;
+      text-align: center;
+      padding: 14px;
+    }
+
+    /* ── WHY XKSH808 ── */
+    .proof-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+    }
+    .proof-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 28px 24px;
+    }
+    .proof-stat {
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: var(--teal);
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+    .proof-card h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 8px; }
+    .proof-card p { color: var(--muted); font-size: 0.85rem; line-height: 1.5; }
+
+    /* ── AI MODULE ── */
+    .ai-block {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 48px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: center;
+    }
+    @media (max-width: 700px) { .ai-block { grid-template-columns: 1fr; } }
+    .ai-block h2 { margin-bottom: 16px; }
+    .ai-block p { color: var(--muted); margin-bottom: 24px; font-size: 0.95rem; }
+    .ai-chat-demo {
+      background: var(--black);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 24px;
+      font-family: monospace;
+      font-size: 0.82rem;
+    }
+    .chat-line { margin-bottom: 12px; line-height: 1.5; }
+    .chat-line .user { color: var(--muted); }
+    .chat-line .bot { color: var(--teal); }
+    .chat-line .msg { color: var(--white); margin-top: 4px; }
+    .cursor { animation: blink 1s step-end infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    /* ── INTAKE FORM ── */
+    .form-wrap {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 48px;
+      max-width: 640px;
+      margin: 0 auto;
+    }
+    .form-wrap h2 { margin-bottom: 8px; }
+    .form-wrap p { color: var(--muted); margin-bottom: 32px; font-size: 0.95rem; }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+    .form-group { display: flex; flex-direction: column; margin-bottom: 16px; }
+    label {
+      font-size: 0.75rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    input, select, textarea {
+      background: var(--black);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--white);
+      padding: 12px 16px;
+      font-size: 0.95rem;
+      font-family: var(--font);
+      transition: border-color 0.2s;
+      outline: none;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--teal); }
+    select option { background: var(--dark); }
+    textarea { min-height: 100px; resize: vertical; }
+    .submit-btn {
+      width: 100%;
+      background: var(--teal);
+      color: var(--black);
+      border: none;
+      padding: 16px;
+      border-radius: 4px;
+      font-size: 1rem;
+      font-weight: 800;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      margin-top: 8px;
+      transition: background 0.2s;
+    }
+    .submit-btn:hover { background: var(--teal-dim); }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    footer p { color: var(--muted); font-size: 0.82rem; }
+    .footer-links { display: flex; gap: 24px; }
+    .footer-links a { color: var(--muted); text-decoration: none; font-size: 0.82rem; }
+    .footer-links a:hover { color: var(--teal); }
+
+    /* ── MOBILE ── */
+    @media (max-width: 600px) {
+      nav { padding: 16px 20px; }
+      .hero { padding: 60px 20px 50px; }
+      section { padding: 60px 20px; }
+      .ai-block { padding: 28px; }
+      .form-wrap { padding: 28px 20px; }
+      footer { padding: 28px 20px; flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">XKSH<span>808</span></div>
+  <div style="display:flex;gap:28px;align-items:center;">
+    <a href="#how">How It Works</a>
+    <a href="#packages">Packages</a>
+    <a href="#start" class="nav-cta">Get Started</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-tag">Hawaii Web · SEO · AI Automation</div>
+  <h1>Reliable Visibility.<br><em>Compliments of<br>Mission Control.</em></h1>
+  <p>We build websites, SEO systems, and AI tools that put Honolulu businesses on the map — and keep them there. No calls required. Pick a package, go live.</p>
+  <div class="hero-btns">
+    <a href="#start" class="btn-primary">Get Your Free Site →</a>
+    <a href="#packages" class="btn-ghost">View Packages</a>
+  </div>
+</div>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-inner">
+    <span>●</span> Local SEO &nbsp;
+    <span>●</span> AI Chatbots &nbsp;
+    <span>●</span> Free Website Build &nbsp;
+    <span>●</span> Honolulu-Based &nbsp;
+    <span>●</span> No Contracts &nbsp;
+    <span>●</span> Live in 48 Hours &nbsp;
+    <span>●</span> Booking Automation &nbsp;
+    <span>●</span> Google Business Optimization &nbsp;
+    <span>●</span> Local SEO &nbsp;
+    <span>●</span> AI Chatbots &nbsp;
+    <span>●</span> Free Website Build &nbsp;
+    <span>●</span> Honolulu-Based &nbsp;
+    <span>●</span> No Contracts &nbsp;
+    <span>●</span> Live in 48 Hours &nbsp;
+    <span>●</span> Booking Automation &nbsp;
+    <span>●</span> Google Business Optimization &nbsp;
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="section-label">Process</div>
+  <h2>Live in 3 Steps.<br>No phone call required.</h2>
+  <p class="section-sub">We built the process for busy owners who don't have time to sit on a sales call.</p>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">Step 01</div>
+      <h3>Fill the Intake Form</h3>
+      <p>Tell us your business name, what you do, and which package you want. Takes 3 minutes.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">Step 02</div>
+      <h3>We Build It</h3>
+      <p>Your site, SEO setup, and AI tools are configured and built within 48 hours by XKSH808.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">Step 03</div>
+      <h3>You Go Live</h3>
+      <p>We hand you the keys. Your business is visible, bookable, and running on autopilot.</p>
+    </div>
+  </div>
+</section>
+
+<!-- PACKAGES -->
+<section id="packages">
+  <div class="section-label">Packages</div>
+  <h2>Pick Your Package.<br>No upsell pressure.</h2>
+  <p class="section-sub">Flat pricing. No hidden fees. No monthly retainers unless you want ongoing SEO.</p>
+  <div class="packages">
+
+    <!-- FREE -->
+    <div class="package">
+      <div class="package-tier">Entry</div>
+      <h3>Free Site</h3>
+      <div class="package-price">$0 <span>/ one time</span></div>
+      <p class="package-desc">Your first website, built and deployed. No strings. We build it, you own it.</p>
+      <ul>
+        <li><span class="check">✓</span> 1-page professional website</li>
+        <li><span class="check">✓</span> Mobile-optimized</li>
+        <li><span class="check">✓</span> Basic contact form</li>
+        <li><span class="check">✓</span> Google-ready setup</li>
+        <li><span class="check">✓</span> Netlify hosted</li>
+      </ul>
+      <a href="#start" class="btn-ghost">Claim Free Site</a>
+    </div>
+
+    <!-- STARTER -->
+    <div class="package featured">
+      <div class="featured-tag">Most Popular</div>
+      <div class="package-tier">Core</div>
+      <h3>Starter Pack</h3>
+      <div class="package-price">$297 <span>/ one time</span></div>
+      <p class="package-desc">Full web presence + local SEO. Get found on Google Maps and start converting visitors.</p>
+      <ul>
+        <li><span class="check">✓</span> 3–5 page website</li>
+        <li><span class="check">✓</span> Google Business Profile setup</li>
+        <li><span class="check">✓</span> Local SEO optimization</li>
+        <li><span class="check">✓</span> Online booking integration</li>
+        <li><span class="check">✓</span> AI chat widget</li>
+        <li><span class="check">✓</span> 30-day support</li>
+      </ul>
+      <a href="#start" class="btn-primary">Get Starter Pack →</a>
+    </div>
+
+    <!-- PRO -->
+    <div class="package">
+      <div class="package-tier">Premium</div>
+      <h3>Pro Build</h3>
+      <div class="package-price">$497 <span>/ one time</span></div>
+      <p class="package-desc">Full funnel, booking automation, and AI agent. Built to close customers while you sleep.</p>
+      <ul>
+        <li><span class="check">✓</span> Everything in Starter</li>
+        <li><span class="check">✓</span> Full sales funnel build</li>
+        <li><span class="check">✓</span> Automated follow-up system</li>
+        <li><span class="check">✓</span> Custom AI chatbot (Amanda)</li>
+        <li><span class="check">✓</span> Stripe / payment integration</li>
+        <li><span class="check">✓</span> 60-day priority support</li>
+      </ul>
+      <a href="#start" class="btn-ghost">Get Pro Build</a>
+    </div>
+
+  </div>
+</section>
+
+<!-- WHY XKSH808 -->
+<section>
+  <div class="section-label">Why XKSH808</div>
+  <h2>Built for Hawaii.<br>Runs like a machine.</h2>
+  <p class="section-sub">We're not an agency with 40 people. We're a lean operator system built to execute fast and clean.</p>
+  <div class="proof-grid">
+    <div class="proof-card">
+      <div class="proof-stat">48h</div>
+      <h4>Average Build Time</h4>
+      <p>From intake form to live site. Most agencies take weeks.</p>
+    </div>
+    <div class="proof-card">
+      <div class="proof-stat">$0</div>
+      <h4>To Get Started</h4>
+      <p>Free site, no pitch call, no credit card until you upgrade.</p>
+    </div>
+    <div class="proof-card">
+      <div class="proof-stat">808</div>
+      <h4>Hawaii-First</h4>
+      <p>We build for local trades — plumbers, cleaners, landscapers, contractors.</p>
+    </div>
+    <div class="proof-card">
+      <div class="proof-stat">AI</div>
+      <h4>Automated Follow-Up</h4>
+      <p>Your AI agent handles inquiries, books calls, and qualifies leads 24/7.</p>
+    </div>
+  </div>
+</section>
+
+<!-- AI MODULE -->
+<section>
+  <div class="ai-block">
+    <div>
+      <div class="section-label">AI Add-On</div>
+      <h2>Your Site Gets a Brain.</h2>
+      <p>The Souper Agent Bot sits on your site and handles every inquiry — even at 2am. Qualifies leads, answers questions, books appointments.</p>
+      <p style="color:var(--teal);font-weight:700;font-size:1.05rem;">Add it for $197 →</p>
+      <a href="#start" class="btn-primary" style="margin-top:8px;">Add AI Bot to My Package</a>
+    </div>
+    <div class="ai-chat-demo">
+      <div class="chat-line">
+        <div class="user">visitor:</div>
+        <div class="msg">Hey do you do landscaping in Kailua?</div>
+      </div>
+      <div class="chat-line">
+        <div class="bot">souper agent:</div>
+        <div class="msg">Yes! We service Kailua and the Windward side. Want a free quote? I can get you scheduled today. 🌺</div>
+      </div>
+      <div class="chat-line">
+        <div class="user">visitor:</div>
+        <div class="msg">Yeah that works</div>
+      </div>
+      <div class="chat-line">
+        <div class="bot">souper agent:</div>
+        <div class="msg">Perfect. What's the best number to reach you? I'll have someone confirm your slot.<span class="cursor">▌</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INTAKE FORM -->
+<section id="start">
+  <div class="form-wrap">
+    <div class="section-label">Get Started</div>
+    <h2>Let's Build Your Visibility.</h2>
+    <p>Fill this out. We'll have your site live in 48 hours. No call needed.</p>
+    <form name="xksh808-intake" method="POST" data-netlify="true" netlify-honeypot="bot-field">
+      <input type="hidden" name="form-name" value="xksh808-intake" />
+      <input type="hidden" name="bot-field" />
+      <div class="form-row">
+        <div class="form-group">
+          <label>Your Name</label>
+          <input type="text" name="name" placeholder="Keoni Makoa" required />
+        </div>
+        <div class="form-group">
+          <label>Phone / WhatsApp</label>
+          <input type="tel" name="phone" placeholder="(808) 555-0100" required />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Business Name</label>
+        <input type="text" name="business" placeholder="Makoa Plumbing LLC" required />
+      </div>
+      <div class="form-group">
+        <label>What Do You Do?</label>
+        <input type="text" name="industry" placeholder="Plumbing, landscaping, cleaning, etc." required />
+      </div>
+      <div class="form-group">
+        <label>Which Package?</label>
+        <select name="package" required>
+          <option value="">— Select a package —</option>
+          <option value="free">Free Site — $0</option>
+          <option value="starter">Starter Pack — $297</option>
+          <option value="pro">Pro Build — $497</option>
+          <option value="bot">Add Souper Agent Bot — $197</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Anything else we should know?</label>
+        <textarea name="notes" placeholder="Existing site? Specific goals? Location?"></textarea>
+      </div>
+      <button type="submit" class="submit-btn">Submit → Let's Go Live 🌺</button>
+    </form>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <div class="logo" style="margin-bottom:6px;">XKSH<span>808</span></div>
+    <p>Honolulu, Hawaii · Built with Mission Control precision.</p>
+  </div>
+  <div class="footer-links">
+    <a href="#how">How It Works</a>
+    <a href="#packages">Packages</a>
+    <a href="#start">Get Started</a>
+  </div>
+  <p style="width:100%;text-align:center;margin-top:16px;">© 2026 XKSH808 Digital Services Hawaii. All rights reserved.</p>
+</footer>
+
+</body>
+</html>
