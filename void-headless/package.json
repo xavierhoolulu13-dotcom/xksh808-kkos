@@ -1,0 +1,33 @@
+{
+  "name": "void-headless",
+  "version": "1.0.0",
+  "description": "XKSH808 Sovereign OS — Headless Agent Runtime",
+  "main": "dist/electron/main.js",
+  "scripts": {
+    "dev": "concurrently \"tsc -w\" \"electron .\"",
+    "build": "tsc && ts-node scripts/build.ts",
+    "start": "ts-node scripts/start.ts",
+    "zip": "bash scripts/zip.sh"
+  },
+  "dependencies": {
+    "@libp2p/tcp": "^9.0.0",
+    "automerge": "^2.1.0",
+    "discord.js": "^14.14.1",
+    "electron": "^30.0.0",
+    "grammy": "^1.26.0",
+    "level": "^8.0.0",
+    "openai": "^4.47.0",
+    "telegraf": "^4.16.3",
+    "uuid": "^9.0.0",
+    "ws": "^8.17.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/uuid": "^9.0.0",
+    "@types/ws": "^8.5.10",
+    "concurrently": "^8.2.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.4.0"
+  }
+}
