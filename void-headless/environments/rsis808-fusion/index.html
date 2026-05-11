@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>RSIS808 · GUIIDE Fusion Runtime</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #020617; --bg2: #07111f;
+  --card: rgba(9,14,27,0.82);
+  --border: rgba(74,222,255,0.12);
+  --accent: #4adeff; --accent2: #0ea5e9;
+  --success: #22c55e; --text: #f8fafc; --muted: #94a3b8;
+  --mono: "JetBrains Mono", monospace; --sans: "Inter", sans-serif;
+  --shadow: 0 25px 80px rgba(0,0,0,0.55); --radius: 22px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--sans); color: var(--text);
+  background: radial-gradient(circle at top, #111827 0%, #07111f 35%, #020617 65%, #000 100%);
+  min-height: 100vh; overflow-x: hidden;
+}
+.bg-grid {
+  position: fixed; inset: 0;
+  background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(circle at center, black, transparent 90%);
+  pointer-events: none;
+}
+.glow {
+  position: fixed; width: 600px; height: 600px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(74,222,255,0.16), transparent 70%);
+  filter: blur(40px); z-index: 0; pointer-events: none;
+}
+.glow.one { top: -200px; left: -200px; }
+.glow.two { bottom: -240px; right: -160px; }
+.app { width: 100%; max-width: 1380px; margin: auto; padding: 32px; position: relative; z-index: 2; }
+
+/* TOPBAR */
+.topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; gap: 18px; flex-wrap: wrap; }
+.brand h1 { font-size: clamp(2rem,4vw,3.4rem); font-weight: 800; letter-spacing: -0.04em; }
+.brand p { margin-top: 6px; color: var(--muted); }
+.status { display: flex; gap: 12px; flex-wrap: wrap; }
+.badge {
+  background: rgba(15,23,42,0.9); border: 1px solid var(--border);
+  padding: 10px 14px; border-radius: 999px; font-size: 13px; color: var(--muted);
+  backdrop-filter: blur(18px);
+}
+.badge strong { color: var(--accent); }
+
+/* PULSE INDICATOR */
+.pulse {
+  display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--success); margin-right: 6px;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
+
+/* GRID */
+.grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 22px; }
+
+/* CARD */
+.card {
+  position: relative; overflow: hidden;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); backdrop-filter: blur(20px);
+  box-shadow: var(--shadow); padding: 24px;
+}
+.card::before {
+  content: ""; position: absolute; inset: -30%;
+  background: radial-gradient(circle at top left, rgba(74,222,255,0.13), transparent 60%);
+  pointer-events: none;
+}
+.card h2 { margin-bottom: 10px; font-size: 1.1rem; }
+.card p { color: var(--muted); line-height: 1.6; font-size: 14px; }
+
+/* FORM */
+.form { margin-top: 18px; display: flex; flex-direction: column; gap: 14px; }
+.form label { display: flex; flex-direction: column; gap: 7px; font-size: 13px; color: var(--muted); }
+.form input, .form textarea, .form select {
+  width: 100%; border: 1px solid rgba(255,255,255,0.06); outline: none;
+  background: rgba(15,23,42,0.95); color: var(--text);
+  padding: 14px; border-radius: 14px; font-size: 14px;
+  font-family: var(--sans); transition: 0.2s;
+}
+.form input:focus, .form textarea:focus, .form select:focus {
+  border-color: rgba(74,222,255,0.55);
+  box-shadow: 0 0 0 1px rgba(74,222,255,0.3);
+}
+.form select option { background: #07111f; }
+.form textarea { min-height: 110px; resize: vertical; }
+button {
+  border: none; cursor: pointer; padding: 15px 18px; border-radius: 999px;
+  font-weight: 700; font-size: 14px; color: #001018;
+  background: linear-gradient(135deg, #4adeff, #0ea5e9);
+  box-shadow: 0 20px 50px rgba(14,165,233,0.32); transition: 0.18s;
+}
+button:hover { transform: translateY(-2px); }
+
+/* OUTPUT */
+.output {
+  margin-top: 14px; background: rgba(2,6,23,0.95);
+  border: 1px solid rgba(255,255,255,0.05); border-radius: 18px;
+  padding: 18px; min-height: 260px; max-height: 420px; overflow: auto;
+  font-family: var(--mono); font-size: 12px; line-height: 1.6;
+  color: #dbeafe; white-space: pre-wrap;
+}
+
+/* EVENT LOG */
+.event-log { margin-top: 18px; display: flex; flex-direction: column; gap: 10px; max-height: 280px; overflow-y: auto; }
+.event {
+  padding: 14px; border-radius: 14px;
+  background: rgba(15,23,42,0.75); border: 1px solid rgba(255,255,255,0.05);
+}
+.event strong { color: var(--accent); font-size: 13px; display: block; margin-bottom: 4px; }
+.event small { color: var(--muted); font-size: 11px; font-family: var(--mono); }
+.event .intent-badge {
+  display: inline-block; margin-top: 6px; padding: 3px 10px;
+  border-radius: 999px; font-size: 11px; font-weight: 700;
+  background: rgba(74,222,255,0.12); color: var(--accent);
+}
+.intent-lead { background: rgba(34,197,94,0.12) !important; color: #22c55e !important; }
+.intent-support { background: rgba(251,191,36,0.12) !important; color: #fbbf24 !important; }
+.intent-command { background: rgba(168,85,247,0.12) !important; color: #a855f7 !important; }
+.intent-spam { background: rgba(239,68,68,0.12) !important; color: #ef4444 !important; }
+.intent-general { background: rgba(148,163,184,0.1) !important; color: var(--muted) !important; }
+
+/* STATS */
+.stats-row { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+.mini-stat {
+  flex: 1; min-width: 80px; background: rgba(15,23,42,0.7);
+  border: 1px solid var(--border); border-radius: 12px; padding: 12px;
+  text-align: center;
+}
+.mini-stat .num { font-size: 1.4rem; font-weight: 800; color: var(--accent); }
+.mini-stat .lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; margin-top: 2px; }
+
+/* COPY BTN */
+.copy-btn {
+  margin-top: 10px; width: 100%; background: rgba(74,222,255,0.08);
+  border: 1px solid rgba(74,222,255,0.2); color: var(--accent);
+  padding: 10px; border-radius: 12px; font-size: 12px;
+  font-weight: 600; cursor: pointer; transition: 0.18s;
+}
+.copy-btn:hover { background: rgba(74,222,255,0.16); }
+
+/* STEPS */
+.steps { margin-top: 20px; }
+.steps ol { color: var(--muted); padding-left: 18px; line-height: 1.9; font-size: 13px; }
+
+/* FOOTER */
+.footer { margin-top: 28px; display: flex; justify-content: space-between; gap: 18px; flex-wrap: wrap; align-items: center; }
+.footer p { color: var(--muted); font-size: 12px; }
+.repo-links { display: flex; gap: 12px; flex-wrap: wrap; }
+.repo-links a {
+  text-decoration: none; color: var(--text);
+  background: rgba(15,23,42,0.92); border: 1px solid rgba(255,255,255,0.06);
+  padding: 12px 16px; border-radius: 14px; transition: 0.18s; font-size: 13px;
+}
+.repo-links a:hover { border-color: rgba(74,222,255,0.5); transform: translateY(-2px); }
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: #07111f; border: 1px solid rgba(74,222,255,0.4);
+  color: var(--text); padding: 14px 20px; border-radius: 14px;
+  font-size: 13px; z-index: 999; opacity: 0;
+  transform: translateY(20px); transition: 0.3s;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+
+@media(max-width:980px) {
+  .grid { grid-template-columns: 1fr; }
+  .app { padding: 18px; }
+}
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="glow one"></div>
+<div class="glow two"></div>
+
+<div class="app">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="brand">
+      <h1>RSIS808 Fusion Runtime</h1>
+      <p>Deterministic Intent Engine · XKSH808 GUIIDE Layer · GitHub Pages Native</p>
+    </div>
+    <div class="status">
+      <div class="badge"><span class="pulse"></span>Runtime: <strong>ACTIVE</strong></div>
+      <div class="badge">Mode: <strong>STATIC</strong></div>
+      <div class="badge">Event Bus: <strong>ONLINE</strong></div>
+      <div class="badge">Processed: <strong id="total-processed">0</strong></div>
+    </div>
+  </div>
+
+  <!-- STATS ROW -->
+  <div class="stats-row">
+    <div class="mini-stat"><div class="num" id="stat-leads">0</div><div class="lbl">Leads</div></div>
+    <div class="mini-stat"><div class="num" id="stat-support">0</div><div class="lbl">Support</div></div>
+    <div class="mini-stat"><div class="num" id="stat-commands">0</div><div class="lbl">Commands</div></div>
+    <div class="mini-stat"><div class="num" id="stat-blocked">0</div><div class="lbl">Blocked</div></div>
+    <div class="mini-stat"><div class="num" id="stat-general">0</div><div class="lbl">General</div></div>
+  </div>
+
+  <!-- GRID -->
+  <div class="grid">
+
+    <!-- CAPTURE -->
+    <div class="card">
+      <h2>Intent Capture Surface</h2>
+      <p>Any page becomes a deterministic intake surface. Landing page, kiosk, widget, mobile app, GitHub Pages deployment — same schema, same engine, same output.</p>
+
+      <form id="capture-form" class="form">
+        <label>Name <input name="name" required placeholder="John Doe"/></label>
+        <label>Email <input type="email" name="email" required placeholder="john@example.com"/></label>
+        <label>
+          Intent Channel
+          <select name="channel">
+            <option value="web">🌐 Web</option>
+            <option value="pwa">📱 PWA / Mobile</option>
+            <option value="github_pages">🐙 GitHub Pages</option>
+            <option value="kiosk">🖥 Kiosk</option>
+            <option value="telegram">✈️ Telegram</option>
+            <option value="discord">💬 Discord</option>
+            <option value="whatsapp">📞 WhatsApp</option>
+          </select>
+        </label>
+        <label>
+          Intent Message
+          <textarea name="message" placeholder="I need a lead system for my business..."></textarea>
+        </label>
+        <label>Source Tag <input name="source" placeholder="github_pages / kiosk / mobile / campaign"/></label>
+        <button type="submit">Generate Deterministic Output →</button>
+      </form>
+
+      <div class="steps">
+        <p style="margin-bottom:8px;font-size:12px;color:var(--muted);">Fusion Pipeline:</p>
+        <ol>
+          <li>Input validation + schema check</li>
+          <li>RSIS808 intent classification</li>
+          <li>Deterministic object construction</li>
+          <li>Event bus emit + log append</li>
+          <li>Canonical payload returned</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- OUTPUT -->
+    <div class="card">
+      <h2>Canonical Payload</h2>
+      <p>Every interaction becomes a replayable deterministic object. Same input → same output. Always.</p>
+
+      <pre id="output" class="output">Awaiting capture...</pre>
+
+      <button class="copy-btn" onclick="copyPayload()">📋 Copy Payload</button>
+
+      <h2 style="margin-top:22px;margin-bottom:10px;">Event Bus Log</h2>
+      <div id="event-log" class="event-log">
+        <div class="event">
+          <strong>RSIS808 · System Boot</strong>
+          <small>Runtime initialized. All bridges nominal. Awaiting input.</small>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    <p>RSIS808 Fusion Runtime · XKSH808 GUIIDE Layer · Fully static — no backend required</p>
+    <div class="repo-links">
+      <a href="../tax-facilitator/">💰 Tax Facilitator</a>
+      <a href="#" onclick="exportLog()">⬇ Export Log</a>
+      <a href="#" onclick="clearLog()">🗑 Clear Log</a>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// RSIS808 INTENT ENGINE — Deterministic Classifier
+// ============================================================
+const INTENT_PATTERNS = {
+  lead:    ['website', 'site', 'seo', 'google', 'business', 'help', 'need', 'want', 'price', 'cost', 'how much', 'build', 'design', 'marketing', 'leads', 'clients'],
+  support: ['broken', 'not working', 'issue', 'problem', 'fix', 'error', 'down', 'stuck', 'bug', 'crash'],
+  command: ['/start', '/status', '/run', '/stop', '/deploy', '/report', '/ping', '!', '/help', '/reset'],
+  spam:    ['click here', 'free money', 'winner', 'congratulations', 'lottery', 'prize', 'bitcoin', 'crypto pump', 'guaranteed'],
+};
+
+function classifyIntent(text) {
+  const t = (text || '').toLowerCase();
+  if (INTENT_PATTERNS.spam.some(kw => t.includes(kw))) return 'spam';
+  if (INTENT_PATTERNS.command.some(kw => t.startsWith(kw))) return 'command';
+  const leadScore = INTENT_PATTERNS.lead.filter(kw => t.includes(kw)).length;
+  if (leadScore >= 1) return 'lead';
+  if (INTENT_PATTERNS.support.some(kw => t.includes(kw))) return 'support';
+  return 'general';
+}
+
+function scoreUrgency(text) {
+  const t = (text || '').toLowerCase();
+  if (['asap', 'urgent', 'now', 'today', 'immediately'].some(w => t.includes(w))) return 5;
+  if (['soon', 'this week', 'need'].some(w => t.includes(w))) return 3;
+  return 1;
+}
+
+function hashString(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const c = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + c;
+    hash |= 0;
+  }
+  return Math.abs(hash).toString(16).toUpperCase().padStart(8, '0');
+}
+
+// ============================================================
+// STATE
+// ============================================================
+const eventBusLog = [];
+const stats = { leads: 0, support: 0, commands: 0, blocked: 0, general: 0, total: 0 };
+let lastPayload = null;
+
+// ============================================================
+// FORM SUBMIT
+// ============================================================
+document.getElementById('capture-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const fd = new FormData(this);
+  const name = fd.get('name').trim();
+  const email = fd.get('email').trim();
+  const message = fd.get('message').trim();
+  const source = fd.get('source').trim() || 'unknown';
+  const channel = fd.get('channel');
+
+  const intent = classifyIntent(message);
+  const urgency = scoreUrgency(message);
+  const ts = new Date().toISOString();
+  const id = `RSIS-${hashString(ts + email + message)}`;
+
+  // Build deterministic object
+  const payload = {
+    id,
+    schema_version: '1.0.0',
+    runtime: 'RSIS808-FUSION',
+    timestamp: ts,
+    channel,
+    source,
+    identity: { name, email },
+    message,
+    classification: {
+      intent,
+      urgency,
+      score: Math.min(urgency * (intent === 'lead' ? 2 : 1), 10),
+      routed_to: intent === 'lead' ? 'A_LEAD' : intent === 'spam' ? 'BLOCKED' : intent === 'command' ? 'ARC' : 'AMANDA',
+    },
+    fingerprint: hashString(email + message),
+    flags: {
+      is_lead: intent === 'lead',
+      is_blocked: intent === 'spam',
+      is_command: intent === 'command',
+      requires_followup: intent === 'lead' || intent === 'support',
+    }
+  };
+
+  // Update output
+  lastPayload = payload;
+  document.getElementById('output').textContent = JSON.stringify(payload, null, 2);
+
+  // Update stats
+  stats.total++;
+  if (intent === 'lead') stats.leads++;
+  else if (intent === 'support') stats.support++;
+  else if (intent === 'command') stats.commands++;
+  else if (intent === 'spam') stats.blocked++;
+  else stats.general++;
+  updateStats();
+
+  // Log event
+  addEvent(payload);
+
+  showToast(`✅ Processed → Intent: ${intent.toUpperCase()} → ${payload.classification.routed_to}`);
+  // Don't reset form — let user see what was submitted
+});
+
+// ============================================================
+// EVENT LOG
+// ============================================================
+function addEvent(payload) {
+  eventBusLog.unshift(payload);
+  const log = document.getElementById('event-log');
+  const div = document.createElement('div');
+  div.className = 'event';
+  div.innerHTML = `
+    <strong>RSIS808 · ${payload.id}</strong>
+    <small>${payload.identity.name} · ${payload.channel} · ${payload.source}</small>
+    <br/><small style="color:var(--text);font-size:12px;margin-top:4px;display:block;">${(payload.message || '').slice(0, 80)}${payload.message?.length > 80 ? '...' : ''}</small>
+    <span class="intent-badge intent-${payload.classification.intent}">${payload.classification.intent.toUpperCase()} → ${payload.classification.routed_to}</span>
+  `;
+  log.insertBefore(div, log.firstChild);
+}
+
+// ============================================================
+// STATS
+// ============================================================
+function updateStats() {
+  document.getElementById('total-processed').textContent = stats.total;
+  document.getElementById('stat-leads').textContent = stats.leads;
+  document.getElementById('stat-support').textContent = stats.support;
+  document.getElementById('stat-commands').textContent = stats.commands;
+  document.getElementById('stat-blocked').textContent = stats.blocked;
+  document.getElementById('stat-general').textContent = stats.general;
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function copyPayload() {
+  if (!lastPayload) { showToast('No payload yet.'); return; }
+  navigator.clipboard.writeText(JSON.stringify(lastPayload, null, 2));
+  showToast('📋 Payload copied to clipboard.');
+}
+
+function exportLog() {
+  if (!eventBusLog.length) { showToast('No events yet.'); return; }
+  const blob = new Blob([JSON.stringify(eventBusLog, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `rsis808-log-${Date.now()}.json`;
+  a.click();
+  showToast('✅ Log exported.');
+}
+
+function clearLog() {
+  document.getElementById('event-log').innerHTML =
+    '<div class="event"><strong>RSIS808 · Log Cleared</strong><small>Event bus reset.</small></div>';
+  eventBusLog.length = 0;
+  showToast('🗑 Log cleared.');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>
