@@ -1,0 +1,168 @@
+{
+  "schema_version": "2.0",
+  "system": "Revenue Agent 808",
+  "generated": "2026-06-04",
+  "pipeline": ["intake", "analysis", "money"],
+
+  "templates": {
+
+    "intake_mode": {
+      "id": "TPL_INTAKE_001",
+      "name": "Intake Mode — Lead Data Extraction",
+      "trigger": "sapiom_scrape_complete",
+      "execution_chain": ["DAEMON808", "Amanda"],
+      "input_schema": {
+        "data_source": "[JSON | text_dump | URL]",
+        "data_format": "[json | text | html]",
+        "lead_id": "[base44_lead_id]"
+      },
+      "output_schema": {
+        "business_identity": {
+          "business_name": "string",
+          "tagline": "string",
+          "industry": "string"
+        },
+        "services": ["service_1", "service_2", "service_3"],
+        "weaknesses": ["weakness_1", "weakness_2", "weakness_3"],
+        "opportunities": ["opportunity_1", "opportunity_2", "opportunity_3"],
+        "normalized_record": {
+          "format": "JSON",
+          "fields": ["name", "url", "industry", "location", "services", "pain_points", "contact"]
+        }
+      },
+      "notion_target": {
+        "database": "XKSH808 Intelligence Hub",
+        "table": "Leads",
+        "action": "create_or_update"
+      }
+    },
+
+    "analysis_mode": {
+      "id": "TPL_ANALYSIS_001",
+      "name": "Analysis Mode — Site Quality + Opportunity Score",
+      "trigger": "intake_mode_complete",
+      "execution_chain": ["DAEMON808", "ROMULUS"],
+      "input_schema": {
+        "intake_output": "TPL_INTAKE_001.output_schema",
+        "lead_id": "[base44_lead_id]"
+      },
+      "output_schema": {
+        "website_quality": {
+          "overall_score": "1-5",
+          "ux_score": "1-5",
+          "strengths": ["string", "string", "string"],
+          "weaknesses": ["string", "string", "string"]
+        },
+        "design_seo": {
+          "design_score": "1-5",
+          "seo_score": "1-5",
+          "recommendations": ["string", "string", "string"]
+        },
+        "conversion": {
+          "conversion_rate_estimate": "percent",
+          "bottlenecks": ["string", "string", "string"],
+          "improvements": ["string", "string", "string"]
+        },
+        "opportunity_map": ["opportunity_1", "opportunity_2", "opportunity_3"]
+      },
+      "notion_target": {
+        "database": "XKSH808 Intelligence Hub",
+        "table": "Templates",
+        "action": "append"
+      }
+    },
+
+    "money_mode": {
+      "id": "TPL_MONEY_001",
+      "name": "Money Mode — Pitch + Offer Generation",
+      "trigger": "analysis_mode_complete",
+      "execution_chain": ["Amanda", "ROMULUS", "DAEMON808"],
+      "input_schema": {
+        "analysis_output": "TPL_ANALYSIS_001.output_schema",
+        "lead_id": "[base44_lead_id]",
+        "offer_tier": ["$75 Quick Fix", "$150 Menu/Google", "$300 Full Rebuild", "$499 Starter Pack", "$600 Funnel+Booking"]
+      },
+      "output_schema": {
+        "new_site": {
+          "structure": "sitemap + wireframe description",
+          "copy_blocks": ["homepage", "about", "services", "cta"]
+        },
+        "pitch_email": {
+          "subject": "string",
+          "body": "string",
+          "cta": "string"
+        },
+        "preview_offer": {
+          "name": "Free Audit Preview",
+          "price": 0,
+          "description": "string"
+        },
+        "micro_offer": {
+          "name": "Quick Fix",
+          "price": 97,
+          "description": "string"
+        },
+        "seven_day_plan": {
+          "day_1": "Send pitch email + landing page link",
+          "day_2": "D+2 SMS/call check-in",
+          "day_3": "Drop social proof (screenshot/review)",
+          "day_4": "Send micro-offer if no close",
+          "day_5": "D+5 final Telegram push",
+          "day_6": "Voicemail if no response",
+          "day_7": "Move to Cold or close"
+        },
+        "upsells": ["Monthly SEO retainer $297/mo", "Social media management $197/mo", "Google Ads management $397/mo"],
+        "value_stack": "string"
+      },
+      "notion_target": {
+        "database": "XKSH808 Intelligence Hub",
+        "table": "Templates",
+        "action": "append"
+      }
+    }
+  },
+
+  "sim_ai_integration": {
+    "endpoint": "[YOUR_SIM_URL]",
+    "trigger": "template_id",
+    "chain_map": {
+      "TPL_INTAKE_001": "DAEMON808 → Amanda",
+      "TPL_ANALYSIS_001": "DAEMON808 → ROMULUS",
+      "TPL_MONEY_001": "Amanda → ROMULUS → DAEMON808"
+    },
+    "daily_tools_wiring": {
+      "discovery": "TPL_INTAKE_001",
+      "builder": "TPL_ANALYSIS_001",
+      "studio": "TPL_MONEY_001"
+    }
+  },
+
+  "daily_tools_ui_map": {
+    "discovery": {
+      "tab": "Discovery",
+      "template_id": "TPL_INTAKE_001",
+      "input_widget": "URL or paste scrape output",
+      "output_widget": "Normalized lead card"
+    },
+    "builder": {
+      "tab": "Builder",
+      "template_id": "TPL_ANALYSIS_001",
+      "input_widget": "Lead card from Discovery",
+      "output_widget": "Opportunity score + site brief"
+    },
+    "studio": {
+      "tab": "Studio",
+      "template_id": "TPL_MONEY_001",
+      "input_widget": "Analysis output + offer tier selector",
+      "output_widget": "Full pitch packet (email + landing page brief + 7-day plan)"
+    }
+  },
+
+  "cto_new_audit_config": {
+    "repo": "Daily Tools",
+    "prompt": "Phase 3 — Reverse Audit",
+    "output": ["audit_report", "wiring_config"],
+    "integration_target": "Daily Tools UI tabs: discovery / builder / studio",
+    "wiring_back": "template_id → SIM.AI endpoint → execution_chain"
+  }
+}
