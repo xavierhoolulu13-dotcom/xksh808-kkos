@@ -1,1 +1,9 @@
+# KKOS — XKSH808 Git Ignore
 .agents/.env
+.agents/.memory/
+node_modules/
+__pycache__/
+*.pyc
+.DS_Store
+incoming_files/scoumet_data/
+incoming_files/scoumet_data2/
