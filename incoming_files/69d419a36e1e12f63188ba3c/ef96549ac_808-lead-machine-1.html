@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>808 Lead Machine - Week 3-4 Pipeline</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Orbitron:wght@400;700;900&display=swap');
+    
+    :root {
+      --fire-orange: #FF6B35;
+      --terminal-jade: #1DB584;
+      --slate-bg: #0F172A;
+      --slate-700: #1E293B;
+      --purple-accent: #9D4EDD;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      color: white;
+      overflow-x: hidden;
+    }
+
+    .scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(255, 255, 255, 0.02),
+        rgba(255, 255, 255, 0.02) 2px,
+        transparent 2px,
+        transparent 4px
+      );
+      z-index: 999;
+    }
+
+    .glow-text {
+      text-shadow: 0 0 10px rgba(255, 107, 53, 0.5), 0 0 20px rgba(255, 107, 53, 0.3);
+    }
+
+    .input-field {
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid rgba(29, 181, 132, 0.3);
+      color: white;
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.375rem;
+      font-family: 'JetBrains Mono', monospace;
+      transition: all 0.2s;
+    }
+
+    .input-field:focus {
+      outline: none;
+      border-color: rgba(255, 107, 53, 0.6);
+      box-shadow: 0 0 8px rgba(255, 107, 53, 0.3);
+    }
+
+    .button-primary {
+      background: linear-gradient(135deg, var(--fire-orange), var(--terminal-jade));
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.375rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .button-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(255, 107, 53, 0.3);
+    }
+
+    .card-glass {
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 107, 53, 0.2);
+      border-radius: 0.5rem;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .step-indicator {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .step {
+      flex: 1;
+      height: 0.5rem;
+      border-radius: 9999px;
+      background: rgba(29, 181, 132, 0.2);
+      transition: all 0.3s;
+    }
+
+    .step.active {
+      background: var(--fire-orange);
+      box-shadow: 0 0 8px rgba(255, 107, 53, 0.5);
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    function LeadMachine808() {
+      const [apiKeys, setApiKeys] = useState({ firecrawl: '', claude: '' });
+      const [showKeys, setShowKeys] = useState({ firecrawl: false, claude: false });
+      const [keysSet, setKeysSet] = useState(false);
+      const [mode, setMode] = useState('intake');
+      const [leads, setLeads] = useState([]);
+      const [currentLead, setCurrentLead] = useState({
+        name: '',
+        url: '',
+        status: 'new',
+        websiteData: null,
+        auditReport: null,
+        telegramPitch: null,
+      });
+      const [loading, setLoading] = useState(false);
+      const [error, setError] = useState('');
+      const [copied, setCopied] = useState(null);
+
+      // Initialize
+      useEffect(() => {
+        const saved = localStorage.getItem('lead_machine_808');
+        if (saved) {
+          const data = JSON.parse(saved);
+          setLeads(data.leads || []);
+          if (data.keys) {
+            setApiKeys(data.keys);
+            setKeysSet(true);
+          }
+        }
+      }, []);
+
+      // Persist
+      useEffect(() => {
+        if (leads.length > 0 || keysSet) {
+          localStorage.setItem('lead_machine_808', JSON.stringify({ 
+            leads, 
+            keys: keysSet ? apiKeys : null 
+          }));
+        }
+      }, [leads, keysSet, apiKeys]);
+
+      const handleKeysSave = () => {
+        if (apiKeys.firecrawl && apiKeys.claude) {
+          setKeysSet(true);
+          setError('');
+        } else {
+          setError('Both API keys required');
+        }
+      };
+
+      const scrapeWebsite = async (url) => {
+        if (!keysSet) {
+          setError('API keys not configured');
+          return null;
+        }
+
+        try {
+          const response = await fetch('https://api.firecrawl.dev/v2/scrape', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${apiKeys.firecrawl}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              url: url,
+              formats: ['markdown'],
+              onlyMainContent: true,
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error(`Firecrawl error: ${response.statusText}`);
+          }
+
+          const data = await response.json();
+          return data.content || data.markdown;
+        } catch (err) {
+          setError(`Scrape failed: ${err.message}`);
+          return null;
+        }
+      };
+
+      const generateAudit = async (websiteContent) => {
+        if (!keysSet) {
+          setError('API keys not configured');
+          return null;
+        }
+
+        try {
+          const response = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': apiKeys.claude,
+            },
+            body: JSON.stringify({
+              model: 'claude-sonnet-4-20250514',
+              max_tokens: 1500,
+              messages: [
+                {
+                  role: 'user',
+                  content: `You are an AI lead capture audit specialist for Hawaii small businesses. Analyze this website and generate a SHORT audit report (max 5 bullet points) identifying gaps in:
+- Lead capture forms
+- Chat/messaging capability
+- AI assistant
+- Online booking/scheduling
+- CTA clarity
+
+Website content:
+${websiteContent.substring(0, 2000)}
+
+Return ONLY the bullet points, no preamble.`,
+                },
+              ],
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error(`Claude error: ${response.statusText}`);
+          }
+
+          const data = await response.json();
+          return data.content[0].text;
+        } catch (err) {
+          setError(`Audit generation failed: ${err.message}`);
+          return null;
+        }
+      };
+
+      const generateTelegramPitch = async (businessName, auditReport) => {
+        if (!keysSet) {
+          setError('API keys not configured');
+          return null;
+        }
+
+        try {
+          const response = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': apiKeys.claude,
+            },
+            body: JSON.stringify({
+              model: 'claude-sonnet-4-20250514',
+              max_tokens: 300,
+              messages: [
+                {
+                  role: 'user',
+                  content: `Write a ONE-sentence Telegram pitch for a Honolulu business called "${businessName}". They're missing lead capture + AI. 
+
+Pitch format: "Hey, we found [specific gap] on your site. Free AI lead system. Worth 30 min?"
+
+Audit findings:
+${auditReport}
+
+Keep it casual, local, direct. One sentence max.`,
+                },
+              ],
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error(`Claude error: ${response.statusText}`);
+          }
+
+          const data = await response.json();
+          return data.content[0].text;
+        } catch (err) {
+          setError(`Pitch generation failed: ${err.message}`);
+          return null;
+        }
+      };
+
+      const handleScrapeAndAudit = async () => {
+        if (!currentLead.url) {
+          setError('Enter a website URL');
+          return;
+        }
+
+        setLoading(true);
+        setError('');
+
+        // Scrape
+        setCurrentLead({ ...currentLead, status: 'scraping' });
+        const website = await scrapeWebsite(currentLead.url);
+        if (!website) {
+          setLoading(false);
+          setCurrentLead({ ...currentLead, status: 'new' });
+          return;
+        }
+
+        setCurrentLead(prev => ({ ...prev, status: 'scraped', websiteData: website }));
+
+        // Audit
+        setCurrentLead(prev => ({ ...prev, status: 'analyzing' }));
+        const audit = await generateAudit(website);
+        if (!audit) {
+          setLoading(false);
+          setCurrentLead({ ...currentLead, status: 'scraped' });
+          return;
+        }
+
+        setCurrentLead(prev => ({ ...prev, status: 'audited', auditReport: audit }));
+
+        // Pitch
+        const pitch = await generateTelegramPitch(currentLead.name, audit);
+        if (pitch) {
+          setCurrentLead(prev => ({ ...prev, telegramPitch: pitch }));
+        }
+
+        setLoading(false);
+      };
+
+      const addToLeads = () => {
+        if (!currentLead.name || !currentLead.auditReport) {
+          setError('Complete audit first');
+          return;
+        }
+
+        setLeads([...leads, { ...currentLead, id: Date.now() }]);
+        setCurrentLead({ name: '', url: '', status: 'new', websiteData: null, auditReport: null, telegramPitch: null });
+        setMode('pipeline');
+      };
+
+      const updateLeadStatus = (id, newStatus) => {
+        setLeads(leads.map(l => l.id === id ? { ...l, status: newStatus } : l));
+      };
+
+      const deleteLead = (id) => {
+        setLeads(leads.filter(l => l.id !== id));
+      };
+
+      const copyToClipboard = (text, key) => {
+        navigator.clipboard.writeText(text);
+        setCopied(key);
+        setTimeout(() => setCopied(null), 2000);
+      };
+
+      const pipelineStats = {
+        total: leads.length,
+        audited: leads.filter(l => l.status === 'audited').length,
+        pitched: leads.filter(l => l.status === 'pitched').length,
+        closed: leads.filter(l => l.status === 'closed').length,
+      };
+
+      const statusLabels = {
+        audited: 'Audited',
+        pitched: 'Pitched',
+        closed: 'Closed 💰',
+      };
+
+      if (!keysSet) {
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-8">
+            <div className="scanlines"></div>
+            <div className="max-w-md mx-auto mt-20 relative z-10">
+              <div className="card-glass p-8">
+                <h1 className="text-4xl font-bold mb-2 glow-text" style={{fontFamily: 'Orbitron, sans-serif'}}>
+                  808 LEAD
+                </h1>
+                <h1 className="text-4xl font-bold mb-4 glow-text" style={{fontFamily: 'Orbitron, sans-serif'}}>
+                  MACHINE
+                </h1>
+                <p className="text-slate-400 mb-6 text-sm">WEEK 3-4 PIPELINE TRACKER</p>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-xs text-orange-500 font-bold block mb-2">
+                      ▶ FIRECRAWL API KEY
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type={showKeys.firecrawl ? 'text' : 'password'}
+                        value={apiKeys.firecrawl}
+                        onChange={(e) => setApiKeys({ ...apiKeys, firecrawl: e.target.value })}
+                        className="input-field flex-1"
+                        placeholder="fc-..."
+                      />
+                      <button
+                        onClick={() => setShowKeys({ ...showKeys, firecrawl: !showKeys.firecrawl })}
+                        className="px-3 py-2 bg-slate-700 hover:bg-slate-600 rounded"
+                      >
+                        {showKeys.firecrawl ? '✕' : '●'}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs text-emerald-500 font-bold block mb-2">
+                      ▶ CLAUDE API KEY
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type={showKeys.claude ? 'text' : 'password'}
+                        value={apiKeys.claude}
+                        onChange={(e) => setApiKeys({ ...apiKeys, claude: e.target.value })}
+                        className="input-field flex-1"
+                        placeholder="sk-..."
+                      />
+                      <button
+                        onClick={() => setShowKeys({ ...showKeys, claude: !showKeys.claude })}
+                        className="px-3 py-2 bg-slate-700 hover:bg-slate-600 rounded"
+                      >
+                        {showKeys.claude ? '✕' : '●'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {error && (
+                    <div className="bg-red-900/30 border border-red-500/50 text-red-200 px-3 py-2 rounded text-xs">
+                      ⚠ {error}
+                    </div>
+                  )}
+
+                  <button
+                    onClick={handleKeysSave}
+                    className="button-primary w-full text-center"
+                  >
+                    UNLOCK MACHINE ▶
+                  </button>
+
+                  <div className="text-xs text-slate-500 text-center mt-4 border-t border-slate-700 pt-4">
+                    Get keys: firecrawl.dev/app/api-keys & claude.ai/account/keys
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+          <div className="scanlines"></div>
+
+          {/* Header */}
+          <div className="card-glass border-b border-orange-500/30 px-8 py-6 relative z-10">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold glow-text" style={{fontFamily: 'Orbitron, sans-serif'}}>
+                  808 LEAD MACHINE
+                </h1>
+                <p className="text-slate-400 text-xs tracking-widest">INTAKE → ANALYZE → PITCH → CLOSE</p>
+              </div>
+              <div className="grid grid-cols-4 gap-6">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-orange-500">{pipelineStats.total}</div>
+                  <div className="text-xs text-slate-400">TOTAL</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-emerald-500">{pipelineStats.audited}</div>
+                  <div className="text-xs text-slate-400">AUDITED</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-purple-500">{pipelineStats.pitched}</div>
+                  <div className="text-xs text-slate-400">PITCHED</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-500">{pipelineStats.closed}</div>
+                  <div className="text-xs text-slate-400">CLOSED</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Mode tabs */}
+          <div className="flex border-b border-slate-700 px-8 bg-slate-800/30 relative z-10">
+            {['intake', 'pipeline'].map((m) => (
+              <button
+                key={m}
+                onClick={() => setMode(m)}
+                className={`px-6 py-3 text-xs font-bold uppercase transition ${
+                  mode === m
+                    ? 'border-b-2 border-orange-500 text-orange-500 glow-text'
+                    : 'text-slate-400 hover:text-slate-300'
+                }`}
+              >
+                {m === 'intake' ? '① INTAKE & AUDIT' : '② PIPELINE'}
+              </button>
+            ))}
+          </div>
+
+          {/* Content */}
+          <div className="p-8 relative z-10">
+            {mode === 'intake' && (
+              <div className="max-w-2xl">
+                <div className="card-glass p-6 space-y-4">
+                  <h2 className="text-lg font-bold text-orange-500">▶ INPUT BUSINESS</h2>
+
+                  <div>
+                    <label className="text-xs text-slate-300 block mb-2">Business Name</label>
+                    <input
+                      type="text"
+                      value={currentLead.name}
+                      onChange={(e) => setCurrentLead({ ...currentLead, name: e.target.value })}
+                      className="input-field w-full"
+                      placeholder="e.g., Aloha Coffee Roasters"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs text-slate-300 block mb-2">Website URL</label>
+                    <input
+                      type="text"
+                      value={currentLead.url}
+                      onChange={(e) => setCurrentLead({ ...currentLead, url: e.target.value })}
+                      className="input-field w-full"
+                      placeholder="https://example.com"
+                    />
+                  </div>
+
+                  {error && (
+                    <div className="bg-red-900/30 border border-red-500/50 text-red-200 px-4 py-2 rounded text-xs">
+                      ⚠ {error}
+                    </div>
+                  )}
+
+                  <button
+                    onClick={handleScrapeAndAudit}
+                    disabled={loading || !currentLead.name || !currentLead.url}
+                    className={`button-primary w-full text-center ${loading || !currentLead.name || !currentLead.url ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    {loading ? '🔄 PROCESSING...' : '⚡ SCRAPE & AUDIT'}
+                  </button>
+
+                  {/* Status */}
+                  {currentLead.status !== 'new' && (
+                    <div className="space-y-2">
+                      <div className="text-xs text-slate-400 font-mono">
+                        STATUS: {currentLead.status.toUpperCase()}
+                      </div>
+                      <div className="step-indicator">
+                        <div className={`step ${['scraped', 'analyzing', 'audited'].includes(currentLead.status) ? 'active' : ''}`}></div>
+                        <div className={`step ${['analyzing', 'audited'].includes(currentLead.status) ? 'active' : ''}`}></div>
+                        <div className={`step ${currentLead.status === 'audited' ? 'active' : ''}`}></div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Audit */}
+                  {currentLead.auditReport && (
+                    <div className="bg-slate-700/50 border border-emerald-500/30 rounded p-4 space-y-2">
+                      <div className="text-emerald-500 font-bold text-sm">✓ AUDIT REPORT</div>
+                      <div className="text-xs text-slate-300 whitespace-pre-wrap">{currentLead.auditReport}</div>
+                    </div>
+                  )}
+
+                  {/* Pitch */}
+                  {currentLead.telegramPitch && (
+                    <div className="bg-slate-700/50 border border-purple-500/30 rounded p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="font-bold text-purple-500 text-sm">💬 TELEGRAM PITCH</div>
+                        <button
+                          onClick={() => copyToClipboard(currentLead.telegramPitch, 'pitch')}
+                          className="px-3 py-1 bg-purple-600 hover:bg-purple-700 rounded text-xs"
+                        >
+                          {copied === 'pitch' ? '✓ COPIED' : 'COPY'}
+                        </button>
+                      </div>
+                      <div className="text-xs text-slate-200 italic">"{currentLead.telegramPitch}"</div>
+                    </div>
+                  )}
+
+                  {currentLead.auditReport && (
+                    <button
+                      onClick={addToLeads}
+                      className="button-primary w-full text-center"
+                    >
+                      ▶ ADD TO PIPELINE
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {mode === 'pipeline' && (
+              <div>
+                <h2 className="text-lg font-bold text-orange-500 mb-4">▶ LEAD PIPELINE</h2>
+
+                {leads.length === 0 ? (
+                  <div className="card-glass p-8 text-center text-slate-400">
+                    No leads yet. Create one in Intake mode.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {leads.map((lead) => (
+                      <div key={lead.id} className="card-glass p-4 flex items-start justify-between gap-4">
+                        <div className="flex-1 space-y-2">
+                          <div className="font-bold text-white text-sm">{lead.name}</div>
+                          <div className="text-xs text-slate-400 font-mono">{lead.url}</div>
+
+                          {/* Status buttons */}
+                          <div className="flex gap-2 mt-2">
+                            {['audited', 'pitched', 'closed'].map((status) => (
+                              <button
+                                key={status}
+                                onClick={() => updateLeadStatus(lead.id, status)}
+                                className={`px-2 py-1 rounded text-xs font-mono transition ${
+                                  lead.status === status
+                                    ? 'bg-orange-500 text-white glow-text'
+                                    : 'bg-slate-700 text-slate-400 hover:bg-slate-600'
+                                }`}
+                              >
+                                {statusLabels[status]}
+                              </button>
+                            ))}
+                          </div>
+
+                          {/* Pitch preview */}
+                          {lead.telegramPitch && (
+                            <div className="text-xs text-slate-300 italic mt-2 flex items-center justify-between gap-2">
+                              <span>💬 {lead.telegramPitch.substring(0, 50)}...</span>
+                              <button
+                                onClick={() => copyToClipboard(lead.telegramPitch, `pitch-${lead.id}`)}
+                                className="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded"
+                              >
+                                {copied === `pitch-${lead.id}` ? '✓' : 'COPY'}
+                              </button>
+                            </div>
+                          )}
+                        </div>
+
+                        <button
+                          onClick={() => deleteLead(lead.id)}
+                          className="px-3 py-2 bg-red-900/30 hover:bg-red-900/60 rounded text-red-400 text-xs"
+                        >
+                          ✕ DELETE
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Export */}
+                {leads.length > 0 && (
+                  <div className="mt-6 card-glass border-emerald-500/30 p-4">
+                    <h3 className="font-bold text-emerald-500 mb-3 text-sm">▶ BULK EXPORT FOR AMANDA</h3>
+                    <button
+                      onClick={() => {
+                        const csv = [
+                          ['Business Name', 'URL', 'Status', 'Telegram Pitch'].join(','),
+                          ...leads.map((l) =>
+                            [l.name, l.url, l.status, `"${l.telegramPitch || ''}"`].join(',')
+                          ),
+                        ].join('\n');
+
+                        const blob = new Blob([csv], { type: 'text/csv' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `808-leads-${Date.now()}.csv`;
+                        a.click();
+                      }}
+                      className="button-primary text-sm"
+                    >
+                      📊 EXPORT CSV
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<LeadMachine808 />);
+  </script>
+</body>
+</html>

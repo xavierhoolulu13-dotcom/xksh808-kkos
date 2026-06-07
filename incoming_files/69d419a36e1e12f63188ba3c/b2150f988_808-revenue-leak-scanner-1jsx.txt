@@ -1,0 +1,426 @@
+import { useState, useRef } from "react";
+
+const S = `
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap');
+
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#060608;--panel:#0c0c10;--panel2:#111116;
+  --border:#1a1a22;--border2:#252530;
+  --gold:#c8a84b;--gold2:#e8c86a;--golddim:rgba(200,168,75,0.1);
+  --red:#c0392b;--red2:#e74c3c;--reddim:rgba(192,57,43,0.12);
+  --green:#1a7a4a;--green2:#27ae60;--greendim:rgba(26,122,74,0.12);
+  --amber:#e67e22;--amberdim:rgba(230,126,34,0.1);
+  --text:#ccccd8;--muted:#4a4a58;
+  --mono:'Space Mono',monospace;
+  --display:'Bebas Neue',sans-serif;
+  --body:'DM Sans',sans-serif;
+}
+html,body{background:var(--bg);color:var(--text);font-family:var(--body);min-height:100vh;}
+
+/* SCANLINES */
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);pointer-events:none;z-index:0;}
+
+.app{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;}
+
+/* HEADER */
+.hdr{background:var(--panel);border-bottom:1px solid var(--border2);padding:0 28px;height:58px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.hdr::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--red),var(--gold),transparent);opacity:.5;}
+.hdr-brand{display:flex;align-items:center;gap:12px;}
+.brand-seal{width:38px;height:38px;border:1.5px solid var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:9px;color:var(--red);font-weight:700;position:relative;animation:sealPulse 3s infinite;}
+.brand-seal::after{content:'';position:absolute;inset:3px;border:1px solid rgba(192,57,43,0.2);border-radius:50%;}
+@keyframes sealPulse{0%,100%{box-shadow:0 0 0 0 rgba(192,57,43,0.3)}50%{box-shadow:0 0 0 6px rgba(192,57,43,0)}}
+.brand-title{font-family:var(--display);font-size:22px;letter-spacing:2px;color:var(--gold2);line-height:1;}
+.brand-sub{font-family:var(--mono);font-size:7px;color:var(--muted);letter-spacing:3px;margin-top:3px;}
+.hdr-right{display:flex;align-items:center;gap:16px;}
+.live-badge{font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--red2);border:1px solid var(--red);padding:3px 8px;animation:flash 2s infinite;}
+@keyframes flash{0%,100%{opacity:1}50%{opacity:.5}}
+
+/* MAIN */
+.main{flex:1;padding:28px 32px;display:flex;flex-direction:column;gap:24px;max-width:1100px;margin:0 auto;width:100%;}
+
+/* INTAKE */
+.intake{background:var(--panel);border:1px solid var(--border2);padding:28px;position:relative;overflow:hidden;}
+.intake::before{content:'REVENUE LEAK SCANNER';position:absolute;top:16px;right:20px;font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:3px;}
+.section-title{font-family:var(--display);font-size:28px;letter-spacing:2px;color:var(--gold2);margin-bottom:4px;}
+.section-sub{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:20px;}
+
+.intake-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+@media(max-width:680px){.intake-grid{grid-template-columns:1fr;}}
+.field{display:flex;flex-direction:column;gap:6px;}
+.field label{font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;}
+.field input,.field select,.field textarea{background:var(--panel2);border:1px solid var(--border2);color:var(--text);font-family:var(--mono);font-size:11px;padding:10px 14px;outline:none;transition:border-color .15s;width:100%;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--gold);}
+.field input::placeholder,.field textarea::placeholder{color:var(--muted);}
+.field select option{background:var(--panel2);}
+.field textarea{resize:vertical;min-height:72px;line-height:1.6;}
+.field.full{grid-column:1/-1;}
+
+.scan-btn{width:100%;background:var(--red);color:#fff;font-family:var(--display);font-size:22px;letter-spacing:4px;border:none;padding:16px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
+.scan-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent);transform:translateX(-100%);transition:transform .4s;}
+.scan-btn:hover{background:var(--red2);}
+.scan-btn:hover::before{transform:translateX(100%);}
+.scan-btn:disabled{background:var(--border2);color:var(--muted);cursor:not-allowed;}
+
+/* SCANNING ANIMATION */
+.scanning{display:flex;flex-direction:column;align-items:center;gap:16px;padding:40px;background:var(--panel);border:1px solid var(--border2);}
+.scan-bar{width:100%;height:2px;background:var(--border2);overflow:hidden;position:relative;}
+.scan-bar::after{content:'';position:absolute;top:0;left:-40%;width:40%;height:100%;background:linear-gradient(90deg,transparent,var(--red),transparent);animation:scanMove 1.2s linear infinite;}
+@keyframes scanMove{to{left:140%;}}
+.scan-label{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:3px;animation:blink .8s infinite;}
+@keyframes blink{0%,100%{opacity:.4}50%{opacity:1}}
+
+/* RESULTS */
+.results{display:flex;flex-direction:column;gap:20px;}
+
+/* VERDICT */
+.verdict{background:var(--panel);border:1px solid var(--border2);padding:24px;display:flex;gap:0;overflow:hidden;}
+.verdict-divider{width:1px;background:var(--border2);margin:0 24px;flex-shrink:0;}
+.verdict-block{flex:1;}
+.v-label{font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:3px;margin-bottom:8px;}
+.v-number{font-family:var(--display);font-size:42px;letter-spacing:2px;line-height:1;}
+.v-number.red{color:var(--red2);}
+.v-number.gold{color:var(--gold2);}
+.v-number.green{color:var(--green2);}
+.v-sub{font-family:var(--mono);font-size:8px;color:var(--muted);margin-top:4px;letter-spacing:1px;}
+.v-summary{font-family:var(--body);font-size:13px;color:var(--muted);line-height:1.7;}
+
+/* FUNNEL VIZ */
+.funnel-wrap{background:var(--panel);border:1px solid var(--border2);padding:24px;}
+.funnel-title{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:3px;margin-bottom:20px;}
+.funnel-stages{display:flex;flex-direction:column;gap:6px;}
+.funnel-stage{display:flex;align-items:center;gap:12px;}
+.stage-label{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;width:120px;flex-shrink:0;text-align:right;text-transform:uppercase;}
+.stage-bar-wrap{flex:1;position:relative;height:32px;}
+.stage-bar{height:100%;transition:width .6s ease;position:relative;display:flex;align-items:center;padding:0 10px;}
+.stage-bar.healthy{background:var(--greendim);border-left:2px solid var(--green2);}
+.stage-bar.warning{background:var(--amberdim);border-left:2px solid var(--amber);}
+.stage-bar.critical{background:var(--reddim);border-left:2px solid var(--red2);}
+.stage-bar-text{font-family:var(--mono);font-size:9px;white-space:nowrap;}
+.stage-bar.healthy .stage-bar-text{color:var(--green2);}
+.stage-bar.warning .stage-bar-text{color:var(--amber);}
+.stage-bar.critical .stage-bar-text{color:var(--red2);}
+.leak-indicator{flex-shrink:0;font-family:var(--mono);font-size:8px;letter-spacing:1px;padding:3px 8px;border:1px solid;white-space:nowrap;}
+.leak-indicator.critical{color:var(--red2);border-color:var(--red);}
+.leak-indicator.warning{color:var(--amber);border-color:var(--amber);}
+.leak-indicator.healthy{color:var(--green2);border-color:var(--green);}
+
+/* LEAK CARDS */
+.leaks-header{display:flex;align-items:center;justify-content:space-between;}
+.leaks-title{font-family:var(--display);font-size:24px;letter-spacing:2px;color:var(--red2);}
+.leaks-count{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;border:1px solid var(--border2);padding:4px 10px;}
+.leak-cards{display:flex;flex-direction:column;gap:12px;}
+
+.leak-card{background:var(--panel);border:1px solid var(--border2);overflow:hidden;transition:border-color .15s;}
+.leak-card:hover{border-color:rgba(192,57,43,0.3);}
+.leak-card.critical{border-top:2px solid var(--red2);}
+.leak-card.warning{border-top:2px solid var(--amber);}
+.leak-card.low{border-top:2px solid var(--green2);}
+.leak-card-header{padding:16px 20px;display:flex;align-items:flex-start;gap:12px;cursor:pointer;user-select:none;}
+.leak-priority{font-family:var(--display);font-size:36px;color:var(--border2);line-height:1;min-width:40px;}
+.leak-card.critical .leak-priority{color:var(--red);}
+.leak-card.warning .leak-priority{color:var(--amber);}
+.leak-info{flex:1;}
+.leak-stage{font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:2px;margin-bottom:4px;text-transform:uppercase;}
+.leak-title{font-family:var(--body);font-size:15px;font-weight:500;color:var(--text);margin-bottom:6px;}
+.leak-meta{display:flex;gap:12px;align-items:center;}
+.leak-impact{font-family:var(--mono);font-size:11px;font-weight:700;}
+.critical .leak-impact{color:var(--red2);}
+.warning .leak-impact{color:var(--amber);}
+.low .leak-impact{color:var(--green2);}
+.leak-severity{font-family:var(--mono);font-size:8px;letter-spacing:2px;padding:2px 7px;border:1px solid;text-transform:uppercase;}
+.critical .leak-severity{color:var(--red2);border-color:var(--red);}
+.warning .leak-severity{color:var(--amber);border-color:var(--amber);}
+.low .leak-severity{color:var(--green2);border-color:var(--green);}
+.leak-toggle{font-family:var(--mono);font-size:14px;color:var(--muted);transition:transform .2s;}
+.leak-toggle.open{transform:rotate(180deg);}
+
+.leak-body{padding:0 20px 20px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:14px;}
+.leak-cause{font-family:var(--body);font-size:13px;color:var(--muted);line-height:1.7;padding-top:14px;}
+.filler-label{font-family:var(--mono);font-size:8px;color:var(--gold);letter-spacing:3px;margin-bottom:8px;}
+.yaml-block{background:#040406;border:1px solid var(--border);padding:16px;font-family:var(--mono);font-size:10px;line-height:1.7;color:#7ec8a0;white-space:pre-wrap;overflow-x:auto;max-height:220px;overflow-y:auto;}
+.yaml-block::-webkit-scrollbar{width:3px;}
+.yaml-block::-webkit-scrollbar-thumb{background:var(--border2);}
+.leak-actions{display:flex;gap:8px;}
+.act-btn{font-family:var(--mono);font-size:9px;letter-spacing:1px;border:1px solid var(--border2);color:var(--muted);padding:7px 14px;cursor:pointer;background:transparent;text-transform:uppercase;transition:all .15s;}
+.act-btn:hover{border-color:var(--gold);color:var(--gold);}
+.act-btn.primary{background:var(--red);border-color:var(--red);color:#fff;}
+.act-btn.primary:hover{background:var(--red2);border-color:var(--red2);}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--panel2);border:1px solid var(--gold);color:var(--gold);font-family:var(--mono);font-size:9px;letter-spacing:2px;padding:10px 18px;z-index:999;animation:toastIn .2s ease;}
+@keyframes toastIn{from{transform:translateY(10px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+/* RESET BTN */
+.reset-row{display:flex;justify-content:flex-end;}
+.reset-btn{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--muted);border:1px solid var(--border);background:transparent;padding:7px 14px;cursor:pointer;transition:all .15s;text-transform:uppercase;}
+.reset-btn:hover{color:var(--red2);border-color:var(--red);}
+`;
+
+const SYSTEM = `You are LEAK-808, the Revenue Leak Detection engine of the 808 Money Printer system by XKSH808.
+
+Your job: analyze a business funnel and identify every revenue leak, bottleneck, and conversion gap. For each leak, generate a specific AI agent config that acts as the filler/fix.
+
+CRITICAL: Respond ONLY with valid JSON. No preamble, no markdown, no backticks. Pure JSON only.
+
+JSON structure:
+{
+  "business_summary": "One sentence summary of the business",
+  "monthly_revenue_at_risk": "e.g. $4,200",
+  "recovery_potential": "e.g. $2,800",
+  "leaks_found": 4,
+  "overall_health": 42,
+  "verdict": "2-3 sentence diagnostic of the biggest problems",
+  "funnel_stages": [
+    {
+      "stage": "Awareness",
+      "health": 80,
+      "severity": "healthy",
+      "conversion": "12%",
+      "note": "Short observation"
+    }
+  ],
+  "leaks": [
+    {
+      "id": 1,
+      "priority": 1,
+      "stage": "Lead Capture",
+      "title": "No automated follow-up after inquiry",
+      "severity": "critical",
+      "revenue_at_risk": "$1,800/mo",
+      "root_cause": "Detailed explanation of why this is leaking revenue.",
+      "filler_agent": {
+        "name": "lead_followup_agent",
+        "yaml": "name: lead_followup_agent\nversion: 1.0.0\ndescription: Automated follow-up sequence for new inquiries\npersona:\n  role: Sales Follow-up Specialist\n  tone: warm_professional\ninstructions: |\n  You are a follow-up specialist. When a lead inquires, send personalized follow-up messages at 1hr, 24hr, and 72hr intervals. Use their name and reference their specific inquiry.\nschedule:\n  trigger: new_lead_inquiry\n  sequence: [1_hour, 24_hours, 72_hours]\nmcps:\n  - crm\n  - email\nmemory:\n  enabled: true\n  type: persistent\noutput:\n  format: email\n  max_tokens: 512\n  temperature: 0.6"
+      }
+    }
+  ]
+}
+
+Be specific and Hawaii-SMB aware if the business is in Hawaii. Generate 3-5 leaks. Order by priority (1 = highest revenue impact). Make agent YAMLs detailed and actionable. Severity: critical / warning / low.`;
+
+const BIZ_TYPES = ["Local Service Business","E-commerce","SaaS / Software","Agency / Freelance","Real Estate","Restaurant / Food","Health & Wellness","Consulting","Retail","Other"];
+
+export default function App() {
+  const [form, setForm] = useState({ bizType: "Local Service Business", bizName: "", monthlyRevenue: "", funnel: "", painPoints: "" });
+  const [phase, setPhase] = useState("intake"); // intake | scanning | results
+  const [data, setData] = useState(null);
+  const [open, setOpen] = useState({});
+  const [toast, setToast] = useState(null);
+
+  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 2200); };
+
+  const copy = (text) => { navigator.clipboard.writeText(text); showToast("COPIED TO CLIPBOARD"); };
+
+  const toggle = (id) => setOpen(p => ({ ...p, [id]: !p[id] }));
+
+  const scan = async () => {
+    if (!form.bizType) return;
+    setPhase("scanning");
+    const prompt = `Business: ${form.bizName || "unnamed"} | Type: ${form.bizType} | Monthly Revenue: ${form.monthlyRevenue || "unknown"} | Funnel description: ${form.funnel || "not provided"} | Known pain points: ${form.painPoints || "none specified"}`;
+    try {
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1000,
+          system: SYSTEM,
+          messages: [{ role: "user", content: prompt }],
+        }),
+      });
+      const raw = await res.json();
+      const text = raw.content?.[0]?.text || "{}";
+      const clean = text.replace(/```json|```/g, "").trim();
+      const parsed = JSON.parse(clean);
+      setData(parsed);
+      setPhase("results");
+    } catch (e) {
+      setPhase("intake");
+      showToast("SCAN ERROR — CHECK CONNECTION");
+    }
+  };
+
+  const severityColor = (s) => s === "critical" ? "var(--red2)" : s === "warning" ? "var(--amber)" : "var(--green2)";
+
+  return (
+    <>
+      <style>{S}</style>
+      <div className="app">
+        <header className="hdr">
+          <div className="hdr-brand">
+            <div className="brand-seal">808</div>
+            <div>
+              <div className="brand-title">Revenue Leak Scanner</div>
+              <div className="brand-sub">808 MONEY PRINTER · FUNNEL FILLER · XKSH808</div>
+            </div>
+          </div>
+          <div className="hdr-right">
+            {phase === "scanning" && <div className="live-badge">● SCANNING</div>}
+            {phase === "results" && <div style={{ fontFamily: "var(--mono)", fontSize: 8, color: "var(--red2)", letterSpacing: 2 }}>{data?.leaks_found} LEAKS FOUND</div>}
+          </div>
+        </header>
+
+        <main className="main">
+
+          {/* INTAKE */}
+          {phase === "intake" && (
+            <div className="intake">
+              <div className="section-title">Funnel Diagnostics</div>
+              <div className="section-sub">DESCRIBE YOUR BUSINESS — ARC-808 IDENTIFIES EVERY REVENUE LEAK</div>
+              <div className="intake-grid">
+                <div className="field">
+                  <label>Business Name</label>
+                  <input placeholder="e.g. Aloha Cleaning Co." value={form.bizName} onChange={e => setForm(p => ({ ...p, bizName: e.target.value }))} />
+                </div>
+                <div className="field">
+                  <label>Business Type</label>
+                  <select value={form.bizType} onChange={e => setForm(p => ({ ...p, bizType: e.target.value }))}>
+                    {BIZ_TYPES.map(b => <option key={b}>{b}</option>)}
+                  </select>
+                </div>
+                <div className="field">
+                  <label>Monthly Revenue (approx)</label>
+                  <input placeholder="e.g. $8,000/mo" value={form.monthlyRevenue} onChange={e => setForm(p => ({ ...p, monthlyRevenue: e.target.value }))} />
+                </div>
+                <div className="field">
+                  <label>Current Funnel Stages</label>
+                  <input placeholder="e.g. Ad → DM → Quote → Close → Upsell" value={form.funnel} onChange={e => setForm(p => ({ ...p, funnel: e.target.value }))} />
+                </div>
+                <div className="field full">
+                  <label>Known Pain Points / Where You're Losing Deals</label>
+                  <textarea placeholder="e.g. Leads ghost after quote, no referral system, slow follow-up, high cart abandon rate..." value={form.painPoints} onChange={e => setForm(p => ({ ...p, painPoints: e.target.value }))} />
+                </div>
+              </div>
+              <button className="scan-btn" onClick={scan}>⬛ RUN LEAK SCAN</button>
+            </div>
+          )}
+
+          {/* SCANNING */}
+          {phase === "scanning" && (
+            <div className="scanning">
+              <div style={{ fontFamily: "var(--display)", fontSize: 28, letterSpacing: 4, color: "var(--red2)" }}>SCANNING FUNNEL</div>
+              <div className="scan-bar" style={{ width: "100%", maxWidth: 400 }} />
+              <div className="scan-label">LEAK-808 ANALYZING REVENUE FLOW...</div>
+              <div style={{ fontFamily: "var(--mono)", fontSize: 8, color: "var(--muted)", letterSpacing: 2, textAlign: "center", lineHeight: 2 }}>
+                MAPPING FUNNEL STAGES<br/>
+                DETECTING BOTTLENECKS<br/>
+                GENERATING FILLER AGENTS
+              </div>
+            </div>
+          )}
+
+          {/* RESULTS */}
+          {phase === "results" && data && (
+            <div className="results">
+
+              <div className="reset-row">
+                <button className="reset-btn" onClick={() => { setPhase("intake"); setData(null); setOpen({}); }}>← NEW SCAN</button>
+              </div>
+
+              {/* VERDICT ROW */}
+              <div className="verdict">
+                <div className="verdict-block">
+                  <div className="v-label">REVENUE AT RISK</div>
+                  <div className="v-number red">{data.monthly_revenue_at_risk || "$0"}</div>
+                  <div className="v-sub">PER MONTH · UNRECOVERED</div>
+                </div>
+                <div className="verdict-divider" />
+                <div className="verdict-block">
+                  <div className="v-label">RECOVERY POTENTIAL</div>
+                  <div className="v-number gold">{data.recovery_potential || "$0"}</div>
+                  <div className="v-sub">WITH FILLER AGENTS DEPLOYED</div>
+                </div>
+                <div className="verdict-divider" />
+                <div className="verdict-block">
+                  <div className="v-label">FUNNEL HEALTH</div>
+                  <div className="v-number" style={{ color: (data.overall_health || 0) > 60 ? "var(--green2)" : (data.overall_health || 0) > 35 ? "var(--amber)" : "var(--red2)" }}>
+                    {data.overall_health || 0}%
+                  </div>
+                  <div className="v-sub">OVERALL SYSTEM SCORE</div>
+                </div>
+                <div className="verdict-divider" />
+                <div className="verdict-block" style={{ flex: 2 }}>
+                  <div className="v-label">DIAGNOSTIC VERDICT</div>
+                  <div className="v-summary" style={{ marginTop: 8 }}>{data.verdict}</div>
+                </div>
+              </div>
+
+              {/* FUNNEL VIZ */}
+              {data.funnel_stages?.length > 0 && (
+                <div className="funnel-wrap">
+                  <div className="funnel-title">FUNNEL STAGE ANALYSIS</div>
+                  <div className="funnel-stages">
+                    {data.funnel_stages.map((s, i) => {
+                      const w = Math.max(15, s.health);
+                      return (
+                        <div key={i} className="funnel-stage">
+                          <div className="stage-label">{s.stage}</div>
+                          <div className="stage-bar-wrap">
+                            <div className={`stage-bar ${s.severity}`} style={{ width: `${w}%` }}>
+                              <span className="stage-bar-text">{s.conversion} · {s.note}</span>
+                            </div>
+                          </div>
+                          <div className={`leak-indicator ${s.severity}`}>{s.severity.toUpperCase()}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* LEAK CARDS */}
+              <div>
+                <div className="leaks-header" style={{ marginBottom: 14 }}>
+                  <div className="leaks-title">LEAKS DETECTED</div>
+                  <div className="leaks-count">{data.leaks?.length || 0} BOTTLENECKS · ORDERED BY IMPACT</div>
+                </div>
+                <div className="leak-cards">
+                  {(data.leaks || []).map((leak) => (
+                    <div key={leak.id} className={`leak-card ${leak.severity}`}>
+                      <div className="leak-card-header" onClick={() => toggle(leak.id)}>
+                        <div className="leak-priority">#{leak.priority}</div>
+                        <div className="leak-info">
+                          <div className="leak-stage">{leak.stage}</div>
+                          <div className="leak-title">{leak.title}</div>
+                          <div className="leak-meta">
+                            <span className="leak-impact">{leak.revenue_at_risk}</span>
+                            <span className="leak-severity">{leak.severity}</span>
+                          </div>
+                        </div>
+                        <div className={`leak-toggle ${open[leak.id] ? "open" : ""}`}>▼</div>
+                      </div>
+
+                      {open[leak.id] && (
+                        <div className="leak-body">
+                          <div className="leak-cause">{leak.root_cause}</div>
+                          <div>
+                            <div className="filler-label">⚡ FILLER AGENT — {leak.filler_agent?.name?.toUpperCase()}</div>
+                            <div className="yaml-block">{leak.filler_agent?.yaml}</div>
+                          </div>
+                          <div className="leak-actions">
+                            <button className="act-btn primary" onClick={() => copy(leak.filler_agent?.yaml || "")}>COPY AGENT YAML</button>
+                            <button className="act-btn" onClick={() => copy(`LEAK: ${leak.title}\nSTAGE: ${leak.stage}\nIMPACT: ${leak.revenue_at_risk}\nFIX: Deploy ${leak.filler_agent?.name}`)}>COPY BRIEF</button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* FOOTER STAMP */}
+              <div style={{ textAlign: "center", padding: "20px 0 8px", borderTop: "1px solid var(--border)" }}>
+                <div style={{ fontFamily: "var(--display)", fontSize: 14, letterSpacing: 6, color: "var(--muted)" }}>XKSH808 · 808 MONEY PRINTER · LEAK-808</div>
+                <div style={{ fontFamily: "var(--mono)", fontSize: 7, color: "var(--border2)", letterSpacing: 3, marginTop: 4 }}>KONTROLD KHAOS · SYSTEM OPERATIONAL</div>
+              </div>
+
+            </div>
+          )}
+
+        </main>
+      </div>
+      {toast && <div className="toast">✓ {toast}</div>}
+    </>
+  );
+}
